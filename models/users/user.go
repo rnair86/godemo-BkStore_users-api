@@ -3,8 +3,8 @@ package users
 import (
 	"strings"
 
-	"github.com/rnair86/godemo-BkStore_users-api/utils/errors")
-
+	"github.com/rnair86/godemo-BkStore_users-api/utils/errors"
+)
 
 type User struct {
 	Id          int64  `json:"id"`
@@ -15,8 +15,8 @@ type User struct {
 }
 
 func (user *User) Validate() *errors.RestErr {
-	user.Email=strings.TrimSpace(strings.ToLower(user.Email))
-	if(user.Email==""){
+	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
+	if user.Email == "" {
 		return errors.NewBadRequestError("Invalid Email address")
 	}
 	return nil

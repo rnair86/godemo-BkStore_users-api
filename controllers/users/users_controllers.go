@@ -53,20 +53,20 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, result)
 }
 func GetUser(c *gin.Context) {
-	userId,userErr := strconv.ParseInt(c.Param("user_id"),10,64)
+	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if userErr != nil {
 		err := errors.NewBadRequestError("Invalid user_id")
-		c.JSON(err.Status,err)
+		c.JSON(err.Status, err)
 		return
 	}
 
-	user, geterr := services.GetUser(userId) 
+	user, geterr := services.GetUser(userId)
 	if geterr != nil {
 		fmt.Println("error: ", geterr)
 		c.JSON(geterr.Status, geterr)
 		return
 	}
-	c.JSON(http.StatusOK,user)
+	c.JSON(http.StatusOK, user)
 
 	//c.String(http.StatusNotImplemented, "Not implemented yet Check back soon!!")
 }
