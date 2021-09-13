@@ -15,25 +15,12 @@ import (
 	"github.com/rnair86/godemo-BkStore_users-api/models/users"
 )
 
-func CreateUser(c *gin.Context) {
-	var user users.User
-	// bytes, err := ioutil.ReadAll(c.Request.Body)
-	// if err != nil {
-	// 	fmt.Println("error: ",err)
-	// 	//TODO: Handle error
-	// 	return
-	// }
-	// if err:= json.Unmarshal(bytes,&user); err!=nil {
-	// 	fmt.Println("error: ",err)
-	// 	//TODO: Handle JSON Conv error
-	// 	return
-	// }
-	//Replace with
+func Create(c *gin.Context) {	
+	var user users.User	
 	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := errors.NewBadRequestError("Invalid json body")
 		fmt.Println("error: ", restErr)
-		c.JSON(restErr.Status, restErr)
-		//TODO: Handle Json error
+		c.JSON(restErr.Status, restErr)		
 		return
 	}
 
@@ -49,14 +36,12 @@ func CreateUser(c *gin.Context) {
 
 	fmt.Printf("%+v\n", result)
 
-	//c.String(http.StatusNotImplemented,"Not implemented yet Check back soon!!")
 	c.JSON(http.StatusCreated, result)
 }
-func GetUser(c *gin.Context) {
-	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if userErr != nil {
-		err := errors.NewBadRequestError("Invalid user_id")
-		c.JSON(err.Status, err)
+func Get(c *gin.Context) {
+	userId, idErr := getUserId(c.Param("user_id"))
+	if idErr != nil {		
+		c.JSON(idErr.Status, idErr)
 		return
 	}
 
@@ -67,9 +52,73 @@ func GetUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user)
-
-	//c.String(http.StatusNotImplemented, "Not implemented yet Check back soon!!")
 }
-func SearchUser(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "Not implemented yet Check back soon!!")
+
+
+
+func Update(c *gin.Context) {
+	//get userid from request
+	userId, idErr := getUserId(c.Param("user_id"))
+	if idErr != nil {		
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	var user users.User	
+	if err := c.ShouldBindJSON(&user); err != nil {
+		restErr := errors.NewBadRequestError("Invalid json body")
+		fmt.Println("error: ", restErr)
+		c.JSON(restErr.Status, restErr)		
+		return
+	}
+	user.Id= userId
+	fmt.Printf("%+v\n", user)
+
+	isPartial := c.Request.Method==http.MethodPatch
+
+	result, upderr := services.UpdateUser(isPartial,user)
+
+	if upderr != nil {
+		fmt.Println("error: ", upderr)
+		c.JSON(upderr.Status, upderr)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func Delete(c *gin.Context) {
+	userId, idErr := getUserId(c.Param("user_id"))
+	if idErr != nil {		
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	if err := services.DeleteUser(userId); err != nil{
+		c.JSON(err.Status, err)
+	}
+	c.JSON(http.StatusOK,map[string]string{"status":"deleted"})
+	
+}
+
+func Search(c *gin.Context) {
+	//c.String(http.StatusNotImplemented, "Not implemented yet Check back soon!!")
+	status := c.Query("status")
+	users, searcherr := services.FindByStatus(status)
+	if searcherr != nil {
+		c.JSON(searcherr.Status,searcherr)
+		return
+	}
+
+	c.JSON(http.StatusOK,users)
+}
+
+
+
+func getUserId(userIdParam string)(int64, *errors.RestErr){
+	userId, userErr := strconv.ParseInt(userIdParam, 10, 64)
+	if userErr != nil {
+		
+		return 0,errors.NewBadRequestError("Invalid user_id")
+	}
+	return userId,nil
 }
