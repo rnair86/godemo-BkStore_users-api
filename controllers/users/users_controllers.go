@@ -3,10 +3,9 @@ package users
 import (
 	//"encoding/json"
 	"fmt"
-	"strconv"
-
 	"github.com/rnair86/godemo-BkStore_users-api/services"
 	"github.com/rnair86/godemo-BkStore_users-api/utils/errors"
+	"strconv"
 
 	//"io/ioutil"
 	"net/http"
@@ -15,12 +14,12 @@ import (
 	"github.com/rnair86/godemo-BkStore_users-api/models/users"
 )
 
-func Create(c *gin.Context) {	
-	var user users.User	
+func Create(c *gin.Context) {
+	var user users.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := errors.NewBadRequestError("Invalid json body")
 		fmt.Println("error: ", restErr)
-		c.JSON(restErr.Status, restErr)		
+		c.JSON(restErr.Status, restErr)
 		return
 	}
 
@@ -36,11 +35,11 @@ func Create(c *gin.Context) {
 
 	fmt.Printf("%+v\n", result)
 
-	c.JSON(http.StatusCreated, result)
+	c.JSON(http.StatusCreated, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 func Get(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
-	if idErr != nil {		
+	if idErr != nil {
 		c.JSON(idErr.Status, idErr)
 		return
 	}
@@ -51,74 +50,70 @@ func Get(c *gin.Context) {
 		c.JSON(geterr.Status, geterr)
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
 }
-
-
 
 func Update(c *gin.Context) {
 	//get userid from request
 	userId, idErr := getUserId(c.Param("user_id"))
-	if idErr != nil {		
+	if idErr != nil {
 		c.JSON(idErr.Status, idErr)
 		return
 	}
 
-	var user users.User	
+	var user users.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := errors.NewBadRequestError("Invalid json body")
 		fmt.Println("error: ", restErr)
-		c.JSON(restErr.Status, restErr)		
+		c.JSON(restErr.Status, restErr)
 		return
 	}
-	user.Id= userId
+	user.Id = userId
 	fmt.Printf("%+v\n", user)
 
-	isPartial := c.Request.Method==http.MethodPatch
+	isPartial := c.Request.Method == http.MethodPatch
 
-	result, upderr := services.UpdateUser(isPartial,user)
+	result, upderr := services.UpdateUser(isPartial, user)
 
 	if upderr != nil {
 		fmt.Println("error: ", upderr)
 		c.JSON(upderr.Status, upderr)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
 func Delete(c *gin.Context) {
 	userId, idErr := getUserId(c.Param("user_id"))
-	if idErr != nil {		
+	if idErr != nil {
 		c.JSON(idErr.Status, idErr)
 		return
 	}
 
-	if err := services.DeleteUser(userId); err != nil{
+	if err := services.DeleteUser(userId); err != nil {
 		c.JSON(err.Status, err)
 	}
-	c.JSON(http.StatusOK,map[string]string{"status":"deleted"})
-	
+	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
 }
 
 func Search(c *gin.Context) {
-	//c.String(http.StatusNotImplemented, "Not implemented yet Check back soon!!")
+
 	status := c.Query("status")
-	users, searcherr := services.FindByStatus(status)
+	result, searcherr := services.FindByStatus(status)
 	if searcherr != nil {
-		c.JSON(searcherr.Status,searcherr)
+		c.JSON(searcherr.Status, searcherr)
 		return
 	}
 
-	c.JSON(http.StatusOK,users)
+	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
+
 }
 
-
-
-func getUserId(userIdParam string)(int64, *errors.RestErr){
+func getUserId(userIdParam string) (int64, *errors.RestErr) {
 	userId, userErr := strconv.ParseInt(userIdParam, 10, 64)
 	if userErr != nil {
-		
-		return 0,errors.NewBadRequestError("Invalid user_id")
+
+		return 0, errors.NewBadRequestError("Invalid user_id")
 	}
-	return userId,nil
+	return userId, nil
 }

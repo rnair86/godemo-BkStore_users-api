@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/rnair86/godemo-BkStore_users-api/models/users"
+	"github.com/rnair86/godemo-BkStore_users-api/utils/crypto_utils"
 	"github.com/rnair86/godemo-BkStore_users-api/utils/date_utils"
 	"github.com/rnair86/godemo-BkStore_users-api/utils/errors"
 )
@@ -12,7 +13,9 @@ func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 	}
 
 	user.DateCreated = date_utils.GetNowDBFormat()
-	user.Status=users.StatusActive
+	user.Status = users.StatusActive
+	user.Password = crypto_utils.GetMD5(user.Password)
+
 	if err := user.Save(); err != nil {
 		return nil, err
 	}
@@ -72,9 +75,7 @@ func DeleteUser(userId int64) *errors.RestErr {
 	return user.Delete()
 }
 
-func FindByStatus(status string) ([]users.User, *errors.RestErr) {
-
+func FindByStatus(status string) (users.Users, *errors.RestErr) {
 	userdao := &users.User{}
-
 	return userdao.FindByStatus(status)
 }
