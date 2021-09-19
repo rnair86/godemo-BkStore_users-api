@@ -1,6 +1,9 @@
 package users
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/rnair86/godemo-BkStore_users-api/logger"
+)
 
 type PublicUser struct {
 	Id          int64  `json:"id"`
@@ -28,6 +31,7 @@ func (user *User) Marshall(isPublic bool) interface{} {
 	userJson, _ := json.Marshal(user)
 	var privateUser PrivateUser
 	if err := json.Unmarshal(userJson, &privateUser); err != nil {
+		logger.Error("error unmarshalling user to private user", err)
 		return nil
 	}
 	return privateUser

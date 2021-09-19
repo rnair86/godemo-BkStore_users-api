@@ -1,7 +1,7 @@
 package users
 
 import (
-	"fmt"
+	"github.com/rnair86/godemo-BkStore_users-api/logger"
 	"strings"
 
 	"github.com/rnair86/godemo-BkStore_users-api/utils/errors"
@@ -36,7 +36,7 @@ func (user *User) Validate() *errors.RestErr {
 	if user.Password == "" {
 		return errors.NewBadRequestError("Invalid Password")
 	}
-	fmt.Println("User Validated!!")
+	logger.Info("User Validated!!")
 	return nil
 
 }

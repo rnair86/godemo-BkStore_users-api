@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
+	"github.com/rnair86/godemo-BkStore_users-api/logger"
 )
 
 var (
@@ -24,13 +24,15 @@ func init() {
 	var err error
 	UsersDb, err = sql.Open("mysql", datasourceName)
 	if err != nil {
+		logger.Error("error opening mysql db connection", err)
 		panic(err)
 	}
 
 	if err = UsersDb.Ping(); err != nil {
+		logger.Error("error pinging mysql database", err)
 		panic(err)
 	}
 
 	//UsersDb = usersDB
-	log.Println("database sussesfully configured")
+	logger.Info("database successfully configured")
 }
